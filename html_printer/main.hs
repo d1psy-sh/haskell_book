@@ -1,49 +1,59 @@
-main = putStrLn myHtml
+-- hello.hs
 
-newtype Html = Html String
+main :: IO ()
+main = putStrLn (render myhtml)
 
-newtype Structure = Structure String
+myhtml :: Html
+myhtml =
+  html_
+    "My title"
+    ( append_
+        (h1_ "Heading")
+        ( append_
+            (p_ "Paragraph #1")
+            (p_ "Paragraph #2")
+        )
+    )
 
-myHtml :: String
-myHtml =
-  makeHtml
-    "Hello, World"
-    (h1_ "Hello, World" <> p1_ "This is my first Haskell program")
+newtype Html
+  = Html String
 
-head_ :: String -> String
-head_ = el "head"
+newtype Structure
+  = Structure String
 
-title_ :: String -> String
-title_ = el "title"
+type Title =
+  String
 
-html_ :: String -> String
-html_ = el "html"
+html_ :: Title -> Structure -> Html
+html_ title content =
+  Html
+    ( el
+        "html"
+        ( el "head" (el "title" title)
+            <> el "body" (getStructureString content)
+        )
+    )
 
-body_ :: String -> String
-body_ = el "body"
+p_ :: String -> Structure
+p_ = Structure . el "p"
 
-p1_ :: String -> String
-p1_ = el "p1"
-
-h1_ :: String -> String
-h1_ = el "h1"
+h1_ :: String -> Structure
+h1_ = Structure . el "h1"
 
 el :: String -> String -> String
 el tag content =
   "<" <> tag <> ">" <> content <> "</" <> tag <> ">"
 
 append_ :: Structure -> Structure -> Structure
-append_ (Structure a) (Structure b) = Structure (a <> b)
+append_ c1 c2 =
+  Structure (getStructureString c1 <> getStructureString c2)
+
+getStructureString :: Structure -> String
+getStructureString content =
+  case content of
+    Structure str -> str
 
 render :: Html -> String
 render html =
   case html of
     Html str -> str
-
-getStructureString :: Structure -> String
-getStructureString struct =
-  case struct of
-    Structure str -> str
-
-makeHtml :: String -> String -> String
-makeHtml title content = html_ (head_ (title_ title) <> body_ content)
